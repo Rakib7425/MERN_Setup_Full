@@ -1,3 +1,4 @@
+import fs from "fs";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { User } from "../models/user.model.js";
 import { saveToLocal } from "../middlewares/multer.middleware.js";
@@ -89,11 +90,11 @@ const updateProfile = asyncHandler(async (req, res) => {
 });
 
 const updateAvatarImage = asyncHandler(async (req, res) => {
-	const localPath = req.file.path;
+	//
+	const localFilePath = req.file.path;
+	console.log(localFilePath);
 
-	console.log(localPath);
-
-	const cloudinaryResponse = await uploadOnCloudinary(localPath);
+	const cloudinaryResponse = await uploadOnCloudinary(localFilePath);
 
 	if (!cloudinaryResponse) {
 		throw new Error("Error uploading file to Cloudinary");
@@ -112,7 +113,7 @@ const updateAvatarImage = asyncHandler(async (req, res) => {
 			message: "User not found",
 		});
 	}
-
+	fs.unlinkSync(localFilePath);
 	// Send a success response
 	res.status(200).json({
 		success: true,
