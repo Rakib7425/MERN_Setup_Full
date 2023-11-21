@@ -3,6 +3,9 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { User } from "../models/user.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 
+/* Handles the registration of a user. It
+takes in two parameters, `req` and `res`, which represent the request and response objects
+respectively. */
 const registerUser = asyncHandler(async (req, res) => {
 	const { username, email, fullName, password } = req.body;
 
@@ -30,6 +33,8 @@ const registerUser = asyncHandler(async (req, res) => {
 	return;
 });
 
+/* Retrieves all users from the
+database and sends a response with the user data. */
 const getUsers = asyncHandler(async (req, res) => {
 	const users = await User.find({});
 	// console.log(user);
@@ -48,6 +53,8 @@ const getUsers = asyncHandler(async (req, res) => {
 	return;
 });
 
+/* Retrieves a user from the
+database based on the provided `id` parameter. */
 const getUserById = asyncHandler(async (req, res) => {
 	//
 	const id = req.query.id;
@@ -68,6 +75,8 @@ const getUserById = asyncHandler(async (req, res) => {
 	return;
 });
 
+/* Updates the profile of a user
+in the database based on the provided `id` parameter. */
 const updateProfile = asyncHandler(async (req, res) => {
 	//
 	const id = req.query.id;
@@ -92,6 +101,8 @@ const updateProfile = asyncHandler(async (req, res) => {
 	return;
 });
 
+/* Updates the avatar image
+of a user in the database. */
 const updateAvatarImage = asyncHandler(async (req, res) => {
 	//
 	const localFilePath = req.file.path;
