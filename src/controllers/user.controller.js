@@ -1,7 +1,6 @@
 import fs from "fs";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { User } from "../models/user.model.js";
-import { saveToLocal } from "../middlewares/multer.middleware.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 
 const registerUser = asyncHandler(async (req, res) => {
@@ -46,6 +45,7 @@ const getUsers = asyncHandler(async (req, res) => {
 		message: "Data fetched successfully!",
 		users,
 	});
+	return;
 });
 
 const getUserById = asyncHandler(async (req, res) => {
@@ -65,6 +65,7 @@ const getUserById = asyncHandler(async (req, res) => {
 		message: "Data fetched successfully!",
 		user,
 	});
+	return;
 });
 
 const updateProfile = asyncHandler(async (req, res) => {
@@ -75,6 +76,7 @@ const updateProfile = asyncHandler(async (req, res) => {
 		{ email: req.body.email, fullName: req.body.fullName },
 		{ new: true }
 	);
+
 	if (!response) {
 		res.status(404).json({
 			success: false,
@@ -87,12 +89,13 @@ const updateProfile = asyncHandler(async (req, res) => {
 			user: response,
 		});
 	}
+	return;
 });
 
 const updateAvatarImage = asyncHandler(async (req, res) => {
 	//
 	const localFilePath = req.file.path;
-	console.log(localFilePath);
+	// console.log(localFilePath);
 
 	const cloudinaryResponse = await uploadOnCloudinary(localFilePath);
 
@@ -113,13 +116,17 @@ const updateAvatarImage = asyncHandler(async (req, res) => {
 			message: "User not found",
 		});
 	}
+
+	// Delete the file after upload to cloud.
 	fs.unlinkSync(localFilePath);
+
 	// Send a success response
 	res.status(200).json({
 		success: true,
 		message: "Profile avatar image updated successfully",
 		avatar_url: response.avatar,
 	});
+	return;
 });
 
 export { registerUser, getUsers, getUserById, updateProfile, updateAvatarImage };
