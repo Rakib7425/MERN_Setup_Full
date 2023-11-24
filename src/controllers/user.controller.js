@@ -19,7 +19,7 @@ const registerUser = asyncHandler(async (req, res) => {
 	// remove password and refresh token field from response
 	// check for user creation
 	// return res
-	console.log(req.files["avatar"][0].path);
+	// console.log(req.files["avatar"][0].path);
 
 	const { fullName, email, username, password } = req.body;
 	// console.log("email: ", email);
@@ -39,8 +39,9 @@ const registerUser = asyncHandler(async (req, res) => {
 	const avatarLocalPath = req.files["avatar"][0]?.path;
 	let coverImageLocalPath = "";
 
-	if (req.files && Array.isArray(req.files) && req.files.length > 0) {
-		coverImageLocalPath = req.files["coverImage"][0].path;
+	if (req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0) {
+		coverImageLocalPath = req.files.coverImage[0].path;
+		// fs.unlinkSync(coverImageLocalPath);
 	}
 
 	if (!avatarLocalPath) {
@@ -54,12 +55,6 @@ const registerUser = asyncHandler(async (req, res) => {
 		avatar = await uploadOnCloudinary(avatarLocalPath);
 		coverImage = await uploadOnCloudinary(coverImageLocalPath);
 	}
-
-	// if (!existedUser) {
-	// 	// Delete the file after upload to cloud.
-	// 	fs.unlinkSync(avatarLocalPath);
-	// 	fs.unlinkSync(coverImageLocalPath);
-	// }
 
 	if (!avatar) {
 		throw new ApiError(400, "Avatar file is required");
@@ -79,10 +74,10 @@ const registerUser = asyncHandler(async (req, res) => {
 	if (!createdUser) {
 		throw new ApiError(500, "Something went wrong while registering the user");
 	}
-
+	// console.log(req.files);
 	return res
 		.status(201)
-		.json(new ApiResponse(200, true, createdUser, "User registered Successfully"));
+		.json(new ApiResponse(200, true, "User registered Successfully", createdUser));
 });
 
 /* Handling the login functionality of a user. It takes in the
