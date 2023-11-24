@@ -107,7 +107,7 @@ const login = asyncHandler(async (req, res) => {
 /* Retrieves all users from the
 database and sends a response with the user data. */
 const getUsers = asyncHandler(async (req, res) => {
-	const users = await User.find({});
+	const users = await User.find({}).select("-password -refreshToken");
 	// console.log(user);
 	if (users.length < 1) {
 		return res.status(404).json(new ApiResponse(404, true, "No user found!", ""));
@@ -176,19 +176,12 @@ const updateAvatarImage = asyncHandler(async (req, res) => {
 		{ _id: id },
 		{ avatar: cloudinaryResponse.secure_url },
 		{ new: true }
-	);
-	const updatedData = {
-		_id: response._id,
-		avatar: response.avatar,
-		username: response.username,
-		email: response.email,
-		fullName: response.fullName,
-	};
+	).select("-password -refreshToken");
 
 	// Send a success response
 	return res
 		.status(200)
-		.json(new ApiResponse(200, true, "Profile avatar image updated successfully", updatedData));
+		.json(new ApiResponse(200, true, "Profile avatar image updated successfully", response));
 });
 
 export { registerUser, login, getUsers, getUserById, updateProfile, updateAvatarImage };
