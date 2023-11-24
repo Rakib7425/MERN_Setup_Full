@@ -1,4 +1,3 @@
-import fs from "fs";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
 import { User } from "../models/user.model.js";
@@ -22,7 +21,6 @@ const registerUser = asyncHandler(async (req, res) => {
 	// console.log(req.files["avatar"][0].path);
 
 	const { fullName, email, username, password } = req.body;
-	// console.log("email: ", email);
 
 	if ([fullName, email, username, password].some((field) => field?.trim() === "")) {
 		throw new ApiError(400, "All fields are required");
@@ -41,7 +39,6 @@ const registerUser = asyncHandler(async (req, res) => {
 
 	if (req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0) {
 		coverImageLocalPath = req.files.coverImage[0].path;
-		// fs.unlinkSync(coverImageLocalPath);
 	}
 
 	if (!avatarLocalPath) {
@@ -85,7 +82,6 @@ const registerUser = asyncHandler(async (req, res) => {
 const login = asyncHandler(async (req, res) => {
 	const identifier = req.body.identifier; // login with username or email
 	const password = req.body.password;
-	// console.log(identifier);
 
 	const user = await User.findOne({
 		$or: [{ username: identifier }, { email: identifier }],
@@ -93,25 +89,18 @@ const login = asyncHandler(async (req, res) => {
 
 	if (user) {
 		const isPasswordCorrect = await user.isPasswordCorrect(password);
+
 		if (!isPasswordCorrect) {
-			return res.status(401).json({
-				success: false,
-				message: "Incorrect password",
-			});
+			return res.status(401).json(new ApiResponse(401, false, "Incorrect password!", ""));
 		}
 
-		res.status(200).json({
-			success: true,
-			data: user,
-		});
-		return;
+		return res.status(200).json(new ApiResponse(200, true, "Successfully logged in!", user));
 	}
 
 	if (!user) {
-		return res.status(404).json({
-			success: true,
-			message: " Invalid username or email. No user found!",
-		});
+		return res
+			.status(404)
+			.json(new ApiResponse(404, true, " Invalid username or email. No user found!", ""));
 	}
 });
 
@@ -121,19 +110,10 @@ const getUsers = asyncHandler(async (req, res) => {
 	const users = await User.find({});
 	// console.log(user);
 	if (users.length < 1) {
-		res.status(404).json({
-			success: true,
-			message: "No user found!",
-		});
-		return;
+		return res.status(404).json(new ApiResponse(404, true, "No user found!", ""));
 	}
 
-	res.status(200).json({
-		success: true,
-		message: "Data fetched successfully!",
-		users,
-	});
-	return;
+	return res.status(200).json(new ApiResponse(200, true, "Data fetched successfully!", users));
 });
 
 /* Retrieves a user from the
@@ -142,20 +122,14 @@ const getUserById = asyncHandler(async (req, res) => {
 	//
 	const id = req.query.id;
 	const user = await User.findById({ _id: id });
+
 	if (!user) {
-		res.status(404).json({
-			success: false,
-			message: "No user found!",
-		});
-		return;
+		return res
+			.status(404)
+			.json(new ApiResponse(404, true, `No user found with id: ${id}!`, ""));
 	}
 
-	res.status(200).json({
-		success: true,
-		message: "Data fetched successfully!",
-		user,
-	});
-	return;
+	return res.status(200).json(new ApiResponse(200, true, "UserData fetched successfully!", user));
 });
 
 /* Updates the profile of a user
@@ -170,18 +144,12 @@ const updateProfile = asyncHandler(async (req, res) => {
 	);
 
 	if (!response) {
-		res.status(404).json({
-			success: false,
-			message: "User not found",
-		});
+		return res.status(404).json(new ApiResponse(404, false, "User not found", ""));
 	} else {
-		res.status(200).json({
-			success: true,
-			message: "Profile updated successfully",
-			user: response,
-		});
+		return res
+			.status(200)
+			.json(new ApiResponse(200, true, "Profile updated successfully", response));
 	}
-	return;
 });
 
 /* Updates the avatar image
@@ -195,11 +163,9 @@ const updateAvatarImage = asyncHandler(async (req, res) => {
 
 	const isUserExist = await User.findById({ _id: id });
 	if (!isUserExist) {
-		res.status(404).json({
-			success: false,
-			message: "User not found",
-		});
-		return;
+		return res
+			.status(404)
+			.json(new ApiResponse(404, false, `No user found with id: ${id}`, ""));
 	}
 
 	const cloudinaryResponse = await uploadOnCloudinary(localFilePath);
@@ -213,13 +179,16 @@ const updateAvatarImage = asyncHandler(async (req, res) => {
 		{ avatar: cloudinaryResponse.secure_url },
 		{ new: true }
 	);
-
+	const updatedData = {
+		avatar: response.avatar,
+		username: response.username,
+		email: response.email,
+		fullName: response.fullName,
+	};
 	// Send a success response
-	return res.status(200).json({
-		success: true,
-		message: "Profile avatar image updated successfully",
-		avatar_url: response.avatar,
-	});
+	return res
+		.status(200)
+		.json(new ApiResponse(200, true, "Profile avatar image updated successfully", updatedData));
 });
 
 export { registerUser, login, getUsers, getUserById, updateProfile, updateAvatarImage };
