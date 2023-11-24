@@ -124,9 +124,7 @@ const getUserById = asyncHandler(async (req, res) => {
 	const user = await User.findById({ _id: id });
 
 	if (!user) {
-		return res
-			.status(404)
-			.json(new ApiResponse(404, true, `No user found with id: ${id}!`, ""));
+		return res.status(404).json(new ApiResponse(404, true, `No user found with id: ${id}`, ""));
 	}
 
 	return res.status(200).json(new ApiResponse(200, true, "UserData fetched successfully!", user));
@@ -180,11 +178,13 @@ const updateAvatarImage = asyncHandler(async (req, res) => {
 		{ new: true }
 	);
 	const updatedData = {
+		_id: response._id,
 		avatar: response.avatar,
 		username: response.username,
 		email: response.email,
 		fullName: response.fullName,
 	};
+
 	// Send a success response
 	return res
 		.status(200)
