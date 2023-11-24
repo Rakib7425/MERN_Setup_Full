@@ -121,7 +121,7 @@ database based on the provided `id` parameter. */
 const getUserById = asyncHandler(async (req, res) => {
 	//
 	const id = req.query.id;
-	const user = await User.findById({ _id: id });
+	const user = await User.findById({ _id: id }).select("-password -refreshToken");
 
 	if (!user) {
 		return res.status(404).json(new ApiResponse(404, true, `No user found with id: ${id}`, ""));
@@ -139,15 +139,44 @@ const updateProfile = asyncHandler(async (req, res) => {
 		{ _id: id },
 		{ email: req.body.email, fullName: req.body.fullName },
 		{ new: true }
-	);
+	).select("-password -refreshToken");
 
 	if (!response) {
-		return res.status(404).json(new ApiResponse(404, false, "User not found", ""));
+		return res.status(404).json(new ApiResponse(404, false, `User not found wit id ${id}`, ""));
 	} else {
 		return res
 			.status(200)
 			.json(new ApiResponse(200, true, "Profile updated successfully", response));
 	}
+});
+
+const updatePassword = asyncHandler(async (req, res) => {
+	const { _id, currentPassword, newPassword } = req.body;
+
+	const user = await User.findById({ _id: _id });
+
+	if (!user) {
+		return res
+			.status(404)
+			.json(new ApiResponse(404, false, `No user found with id: ${_id}`, ""));
+	}
+
+	const isPasswordCorrect = await user.isPasswordCorrect(currentPassword);
+
+	if (!isPasswordCorrect) {
+		return res.status(401).json(new ApiResponse(401, false, "Incorrect current password!", ""));
+	}
+
+	const response = await User.findByIdAndUpdate(
+		{ _id: _id },
+		{ password: newPassword },
+		{ new: true }
+	);
+
+	// Send a success response
+	return res
+		.status(200)
+		.json(new ApiResponse(200, true, "Your password updated successfully!", response));
 });
 
 /* Updates the avatar image
@@ -184,4 +213,12 @@ const updateAvatarImage = asyncHandler(async (req, res) => {
 		.json(new ApiResponse(200, true, "Profile avatar image updated successfully", response));
 });
 
-export { registerUser, login, getUsers, getUserById, updateProfile, updateAvatarImage };
+export {
+	registerUser,
+	login,
+	getUsers,
+	getUserById,
+	updateProfile,
+	updatePassword,
+	updateAvatarImage,
+};
