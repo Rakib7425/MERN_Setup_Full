@@ -173,6 +173,7 @@ const updatePassword = asyncHandler(async (req, res) => {
 		{ new: true }
 	);
 
+	// const updatedUser = await response.save();
 	// Send a success response
 	return res
 		.status(200)
