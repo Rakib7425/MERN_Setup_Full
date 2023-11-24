@@ -27,7 +27,7 @@ const userSchema = new Schema(
 		},
 		avatar: {
 			type: String, // cloudinary url
-			// required: true,
+			required: true,
 		},
 		coverImage: {
 			type: String, // cloudinary url
@@ -63,6 +63,10 @@ userSchema.pre("save", async function (next) {
 });
 
 userSchema.methods.isPasswordCorrect = async function (password) {
+	if (!this.password) {
+		return false;
+	}
+
 	return await bcrypt.compare(password, this.password);
 };
 
